@@ -20,24 +20,26 @@ import re
 
 list_of_abbrs = []
 
-def abbreviate(elem, doc):
-    if isinstance(elem, pf.Span):
-        if 'abbr' in elem.classes:
-            as_text = pf.stringify(elem)
+def find_abbreviations(el, doc):
+    if isinstance(el, pf.Span):
+        if 'abbr' in el.classes:
+            as_text = pf.stringify(el)
             abbr = re.search("\(.*\)", as_text).group()
             abbr = re.sub('[()]', '', abbr)
             words = re.sub("\(.*\)", '', as_text)
             words = words[0].capitalize() + words[1:].strip()
-            list_of_abbrs.append(f'{abbr} - {words}\n')
+            list_of_abbrs.append(f'{abbr} - {words}')
 
-def inject(elem, doc):
-    if isinstance(elem, pf.Div):
-        if 'list-of-abbrs' in elem.identifier:
-            new_content = pf.Para(pf.Str('\n'.join(sorted(set(list_of_abbrs)))))
-            return new_content
+def inject_loa(el, doc):
+    if isinstance(el, pf.Div):
+        if 'list-of-abbrs' in el.identifier:
+            global list_of_abbrs
+            list_of_abbrs = sorted(set(list_of_abbrs))
+            content = pf.Para(pf.Str('\n\n'.join(list_of_abbrs)))
+            return content
 
 def main(doc=None):
-    return pf.run_filters([abbreviate, inject], doc=doc)
+    return pf.run_filters([find_abbreviations, inject_loa], doc=doc)
 
 if __name__ == "__main__":
     main()
