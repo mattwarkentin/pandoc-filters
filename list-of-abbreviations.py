@@ -21,22 +21,20 @@ import re
 list_of_abbrs = []
 
 def find_abbreviations(el, doc):
-    if isinstance(el, pf.Span):
-        if 'abbr' in el.classes:
-            as_text = pf.stringify(el)
-            abbr = re.search("\(.*\)", as_text).group()
-            abbr = re.sub('[()]', '', abbr)
-            words = re.sub("\(.*\)", '', as_text)
-            words = words[0].capitalize() + words[1:].strip()
-            list_of_abbrs.append(f'{abbr} - {words}')
+    if isinstance(el, pf.Span) and 'abbr' in el.classes:
+        as_text = pf.stringify(el)
+        abbr = re.search("\(.*\)", as_text).group()
+        abbr = re.sub('[()]', '', abbr)
+        words = re.sub("\(.*\)", '', as_text)
+        words = words[0].capitalize() + words[1:].strip()
+        list_of_abbrs.append(f'{abbr} - {words}')
 
 def inject_loa(el, doc):
-    if isinstance(el, pf.Div):
-        if 'list-of-abbrs' in el.identifier:
-            global list_of_abbrs
-            list_of_abbrs = sorted(set(list_of_abbrs))
-            content = pf.Para(pf.Str('\n\n'.join(list_of_abbrs)))
-            return content
+    if isinstance(el, pf.Div) and 'list-of-abbrs' in el.identifier:
+        global list_of_abbrs
+        list_of_abbrs = sorted(set(list_of_abbrs))
+        content = pf.Para(pf.Str('\n\n'.join(list_of_abbrs)))
+        return content
 
 def main(doc=None):
     return pf.run_filters([find_abbreviations, inject_loa], doc=doc)
