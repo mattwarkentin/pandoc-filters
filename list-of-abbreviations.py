@@ -19,6 +19,7 @@ import panflute as pf
 import re
 
 list_of_abbrs = []
+list_of_words = []
 
 def find_abbreviations(el, doc):
     if isinstance(el, pf.Span) and 'abbr' in el.classes:
@@ -27,13 +28,23 @@ def find_abbreviations(el, doc):
         abbr = re.sub('[()]', '', abbr)
         words = re.sub("\(.*\)", '', as_text)
         words = words[0].capitalize() + words[1:].strip()
-        list_of_abbrs.append(f'{abbr} - {words}')
+        list_of_abbrs.append(abbr)
+        list_of_words.append(words)
+
+def format_list(loa, low):
+    indices = [loa.index(x) for x in sorted(set(loa))]
+    loa = [loa[i] for i in indices]
+    low = [low[i] for i in indices]
+    full_list = []
+    for a, w in zip(loa, low):
+        full_list.append(pf.Para(pf.Strong(pf.Str(a)), pf.Space, pf.Str(w)))
+    return pf.Div(*full_list)
 
 def inject_loa(el, doc):
     if isinstance(el, pf.Div) and 'list-of-abbrs' in el.identifier:
         global list_of_abbrs
-        list_of_abbrs = sorted(set(list_of_abbrs))
-        content = pf.Para(pf.Str('\n\n'.join(list_of_abbrs)))
+        global list_of_abbrs
+        content = format_list(list_of_abbrs, list_of_words)
         return content
 
 def main(doc=None):
